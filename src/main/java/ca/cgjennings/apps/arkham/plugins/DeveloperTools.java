@@ -162,7 +162,9 @@ public class DeveloperTools extends AbstractPlugin {
             toolWindows = new DevToolProxy[toolTypes.length];
             for (int p = 0; p < toolWindows.length; ++p) {
                 if (toolTypes[p] != null) {
-                    toolWindows[p] = new DevToolProxy(toolTypes[p], p);
+                    toolWindows[p] = "Log Viewer".equals(toolTypes[p])
+                            ? new DevToolProxy(toolTypes[p], p, 720, 480)
+                            : new DevToolProxy(toolTypes[p], p);
                     StrangeEons.getWindow().startTracking(toolWindows[p]);
                 } else {
                     toolWindows[p] = null;

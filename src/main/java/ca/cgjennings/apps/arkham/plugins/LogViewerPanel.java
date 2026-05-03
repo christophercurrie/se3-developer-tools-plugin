@@ -1,12 +1,15 @@
 package ca.cgjennings.apps.arkham.plugins;
 
 import ca.cgjennings.apps.arkham.StrangeEons;
+import ca.cgjennings.apps.arkham.StrangeEons.LogEntry;
 import ca.cgjennings.apps.arkham.ToolWindow;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.List;
 import java.util.Locale;
 import java.util.logging.Level;
 import javax.swing.JMenuItem;
@@ -22,23 +25,13 @@ import javax.swing.text.Document;
  */
 public class LogViewerPanel extends javax.swing.JPanel {
 
-    private StringBuffer logBuffer;
-    private int buffLen;
+    private int entriesSeen;
     private Timer pollTimer;
 
     public LogViewerPanel(ToolWindow tw) {
         initComponents();
         initLevelPopup();
 
-        try {
-            Field fLogBuffer = StrangeEons.class.getDeclaredField("logBuffer");
-            fLogBuffer.setAccessible(true);
-            logBuffer = (StringBuffer) fLogBuffer.get(null);
-            fLogBuffer.setAccessible(false);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            StrangeEons.log.log(Level.SEVERE, null, e);
-            throw new AssertionError();
-        }
         pollTimer = new Timer(100, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -60,21 +53,25 @@ public class LogViewerPanel extends javax.swing.JPanel {
     }
 
     private void updateLog() {
-        String newText = null;
-        synchronized (logBuffer) {
-            int newLen = logBuffer.length();
-            if (buffLen != newLen) {
-                newText = logBuffer.substring(buffLen, newLen);
-                buffLen = newLen;
-            }
+        List<LogEntry> snapshot;
+        try {
+            snapshot = new ArrayList<>(StrangeEons.getLogEntries());
+        } catch (ConcurrentModificationException ex) {
+            return;
         }
-        if (newText != null) {
-            try {
-                Document doc = logField.getDocument();
-                doc.insertString(doc.getLength(), newText, null);
-            } catch (BadLocationException ex) {
-                // impossible
-            }
+        if (snapshot.size() <= entriesSeen) {
+            return;
+        }
+        StringBuilder newText = new StringBuilder();
+        for (int i = entriesSeen; i < snapshot.size(); i++) {
+            newText.append(snapshot.get(i).message);
+        }
+        entriesSeen = snapshot.size();
+        try {
+            Document doc = logField.getDocument();
+            doc.insertString(doc.getLength(), newText.toString(), null);
+        } catch (BadLocationException ex) {
+            // impossible
         }
     }
 

@@ -28,12 +28,20 @@ class DevToolProxy extends TrackedWindowProxy {
 
     protected ToolWindow tw;
     private float offsetMultiplier;
+    private int defaultWidth;
+    private int defaultHeight;
 
     public DevToolProxy(String windowTitle, float defaultWindowOffsetMultiplier) {
+        this(windowTitle, defaultWindowOffsetMultiplier, BASE_WIN_WIDTH, BASE_WIN_HEIGHT);
+    }
+
+    public DevToolProxy(String windowTitle, float defaultWindowOffsetMultiplier, int defaultWidth, int defaultHeight) {
         super(windowTitle, ResourceKit.getIcon(
                 "/resources/cgj/devtools/" + windowTitle.toLowerCase(Locale.ROOT).replace(' ', '-') + ".png")
         );
         offsetMultiplier = defaultWindowOffsetMultiplier;
+        this.defaultWidth = defaultWidth;
+        this.defaultHeight = defaultHeight;
     }
 
     @Override
@@ -74,8 +82,8 @@ class DevToolProxy extends TrackedWindowProxy {
         GraphicsConfiguration gc = app.getGraphicsConfiguration();
         Rectangle bounds = gc.getBounds();
         Insets i = app.getToolkit().getScreenInsets(gc);
-        int w = BASE_WIN_WIDTH;
-        int h = BASE_WIN_HEIGHT;
+        int w = defaultWidth;
+        int h = defaultHeight;
         int y = bounds.y + i.top + (int) (BASE_WIN_HEIGHT * offsetMultiplier) + 8;
         int x = bounds.x + bounds.width - i.right - w - 72;
         tw.setBounds(x, y, w, h);

@@ -10,6 +10,11 @@ import ca.cgjennings.apps.arkham.project.Actions;
 import ca.cgjennings.apps.arkham.project.NewTaskType;
 import ca.cgjennings.apps.arkham.project.TaskAction;
 import gamedata.Expansion;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.Icon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
@@ -35,7 +40,21 @@ public class DeveloperTools extends AbstractPlugin {
 
     @Override
     public float getPluginVersion() {
-        return 3.0f;
+        return PLUGIN_VERSION;
+    }
+
+    private static final float PLUGIN_VERSION = loadPluginVersion();
+
+    private static float loadPluginVersion() {
+        Properties p = new Properties();
+        try (InputStream in = DeveloperTools.class.getResourceAsStream("dev-tools.properties")) {
+            if (in != null) {
+                p.load(in);
+            }
+        } catch (IOException ignored) {
+        }
+        Matcher m = Pattern.compile("^(\\d+(?:\\.\\d+)?)").matcher(p.getProperty("version", ""));
+        return m.find() ? Float.parseFloat(m.group(1)) : 0f;
     }
 
     @Override

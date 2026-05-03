@@ -2,6 +2,7 @@ import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id 'java'
+    id 'net.researchgate.release' version '3.1.0'
 }
 
 java {
@@ -17,6 +18,43 @@ repositories {
 
 dependencies {
     compileOnly 'ca.cgjennings:strange-eons:1.0-SNAPSHOT'
+}
+
+tasks.named('processResources', ProcessResources) {
+    def pluginVersion = project.version
+    def catalogTs = providers.gradleProperty('catalogTimestamp').get()
+    inputs.property('version', pluginVersion)
+    inputs.property('catalogTimestamp', catalogTs)
+    filesMatching('ca/cgjennings/apps/arkham/plugins/dev-tools.properties') {
+        expand(version: pluginVersion)
+    }
+    filesMatching('eons-plugin') {
+        expand(catalogTimestamp: catalogTs)
+    }
+}
+
+tasks.register('bumpCatalogTimestamp') {
+    description = 'Updates catalogTimestamp in gradle.properties to the current time.'
+    doLast {
+        def gp = file('gradle.properties')
+        def now = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern('yyyy-MM-dd-HH-mm-ss-SSS'))
+        gp.text = gp.text.replaceAll(/(?m)^catalogTimestamp=.*$/, "catalogTimestamp=${now}")
+        logger.lifecycle("catalogTimestamp set to ${now}")
+    }
+}
+
+afterEvaluate {
+    tasks.named('beforeReleaseBuild').configure {
+        dependsOn 'bumpCatalogTimestamp'
+    }
+    tasks.named('bumpCatalogTimestamp').configure {
+        mustRunAfter 'unSnapshotVersion'
+    }
+}
+
+release {
+    tagTemplate = 'v${version}'
 }
 
 tasks.named('jar') {

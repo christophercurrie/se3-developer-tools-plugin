@@ -2,7 +2,7 @@
 ## Developer Tools
 ##
 
-id = CATALOGUEID{39f10fa9-6574-4be1-9dd6-3e658c9a6fd3:2021-10-23-00-00-00-000}
+id = CATALOGUEID{39f10fa9-6574-4be1-9dd6-3e658c9a6fd3:${catalogTimestamp}}
 
 ca.cgjennings.apps.arkham.plugins.DeveloperTools
 

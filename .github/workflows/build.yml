@@ -26,7 +26,22 @@ jobs:
           repository: christophercurrie/strange-eons
           path: strange-eons
 
+      - name: Resolve strange-eons commit
+        id: strange-eons
+        working-directory: strange-eons
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Maven repository
+        id: m2-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ steps.strange-eons.outputs.sha }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
       - name: Install strange-eons to local Maven repo
+        if: steps.m2-cache.outputs.cache-hit != 'true'
         working-directory: strange-eons
         run: mvn -B -DskipTests install
 

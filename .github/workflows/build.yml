@@ -1,0 +1,44 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out plug-in
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Check out strange-eons
+        uses: actions/checkout@v4
+        with:
+          repository: christophercurrie/strange-eons
+          path: strange-eons
+
+      - name: Install strange-eons to local Maven repo
+        working-directory: strange-eons
+        run: mvn -B -DskipTests install
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build plug-in
+        run: ./gradlew build
+
+      - name: Upload plug-in bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeveloperTools.seplugin
+          path: build/dist/DeveloperTools.seplugin
+          if-no-files-found: error

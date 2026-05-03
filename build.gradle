@@ -55,6 +55,7 @@ afterEvaluate {
 
 release {
     tagTemplate = 'v${version}'
+    failOnSnapshotDependencies = false
 }
 
 tasks.named('jar') {

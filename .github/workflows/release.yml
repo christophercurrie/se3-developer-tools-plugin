@@ -1,0 +1,59 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out plug-in
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Check out strange-eons
+        uses: actions/checkout@v4
+        with:
+          repository: christophercurrie/strange-eons
+          path: strange-eons
+
+      - name: Resolve strange-eons commit
+        id: strange-eons
+        working-directory: strange-eons
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Maven repository
+        id: m2-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ steps.strange-eons.outputs.sha }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Install strange-eons to local Maven repo
+        if: steps.m2-cache.outputs.cache-hit != 'true'
+        working-directory: strange-eons
+        run: mvn -B -DskipTests install
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build plug-in
+        run: ./gradlew build
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/dist/DeveloperTools.seplugin
+          generate_release_notes: true
+          fail_on_unmatched_files: true

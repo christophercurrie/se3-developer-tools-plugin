@@ -1,7 +1,7 @@
 package ca.cgjennings.apps.arkham.plugins;
 
 import ca.cgjennings.apps.arkham.StrangeEons;
-import ca.cgjennings.apps.arkham.editors.CodeEditor.CodeType;
+import ca.cgjennings.ui.textedit.CodeType;
 import ca.cgjennings.io.EscapedTextCodec;
 import ca.cgjennings.ui.dnd.FileDrop;
 import ca.cgjennings.ui.theme.ThemeInstaller;

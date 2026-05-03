@@ -6,12 +6,21 @@ This repository contains the source code for the developer tools plug-in. The pl
 
 ## Building the plug-in
 
-The plug-in expects the Strange Eons repository to be in a sibling directory, like this:
+The plug-in compiles against `strange-eons-app` from the local Maven repository.
+Build and install Strange Eons first:
 
 ```
-your-projects-directory/
-  strange-eons/
-  se3-developer-tools-plugin/
+cd ../strange-eons
+mvn install -DskipTests
 ```
 
-After a successful build, the plug-in will be written to the `dist` folder.
+Then build the plug-in with the Gradle wrapper:
+
+```
+./gradlew build
+```
+
+The plug-in is written to `build/dist/DeveloperTools.seplugin`. If a Strange
+Eons user folder exists (`%APPDATA%/StrangeEons3` on Windows, `~/.StrangeEons3`
+otherwise, or `$STRANGE_EONS_USER_DIR` if set), the bundle is also copied into
+its `plug-ins` subfolder.

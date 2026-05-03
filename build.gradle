@@ -1,0 +1,50 @@
+import org.gradle.internal.os.OperatingSystem
+
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly 'ca.cgjennings:strange-eons:1.0-SNAPSHOT'
+}
+
+tasks.named('jar') {
+    archiveFileName = 'DeveloperTools.seplugin'
+    destinationDirectory = layout.buildDirectory.dir('dist')
+}
+
+def userPluginsDir = providers.provider {
+    def override = System.getenv('STRANGE_EONS_USER_DIR')
+    def base
+    if (override) {
+        base = file(override)
+    } else if (OperatingSystem.current().windows) {
+        def appdata = System.getenv('APPDATA') ?: System.getProperty('user.home')
+        base = file("${appdata}/StrangeEons3")
+    } else {
+        base = file("${System.getProperty('user.home')}/.StrangeEons3")
+    }
+    new File(base, 'plug-ins')
+}
+
+tasks.register('installPlugin', Copy) {
+    description = 'Copies the built plug-in into the local Strange Eons user folder.'
+    from tasks.named('jar')
+    into userPluginsDir
+    onlyIf { userPluginsDir.get().isDirectory() }
+}
+
+tasks.named('assemble') {
+    finalizedBy 'installPlugin'
+}
